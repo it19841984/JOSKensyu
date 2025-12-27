@@ -143,6 +143,14 @@
                 </div>
             </div>
 
+            <!-- 追加された研修の一覧 -->
+            <div id="addedTrainingListSection" class="bg-gray-50 rounded-lg p-6 mb-8" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-list mr-2"></i>追加された研修一覧
+                </h2>
+                <div id="addedTrainingList" class="space-y-2"></div>
+            </div>
+
             <!-- 進捗状況表示 -->
             <div id="progressSection" class="bg-purple-50 rounded-lg p-6 mb-8" style="display: none;">
                 <h2 class="text-xl font-semibold text-purple-800 mb-4">
@@ -164,6 +172,51 @@
         let trainingData = {};
         let currentApplicationType = '';
         let currentApplicationYear = '';
+        let addedTrainingList = [];
+
+        // 追加研修を表示する関数
+        function updateAddedTrainingDisplay() {
+            const listContainer = document.getElementById('addedTrainingList');
+            const listSection = document.getElementById('addedTrainingListSection');
+            
+            if (addedTrainingList.length === 0) {
+                listSection.style.display = 'none';
+                return;
+            }
+            
+            listSection.style.display = 'block';
+            
+            const fieldNames = [
+                '①医療倫理',
+                '②患者・医療者関係の構築',
+                '③医療安全',
+                '④院内感染対策',
+                '⑤医療関連法規・医療経済'
+            ];
+            
+            listContainer.innerHTML = addedTrainingList.map((item, index) => `
+                <div class="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200">
+                    <div class="flex-1">
+                        <span class="font-medium text-gray-800">${item.year}年度</span>
+                        <span class="mx-2 text-gray-400">|</span>
+                        <span class="text-gray-700">${fieldNames[item.field]}</span>
+                    </div>
+                    <button onclick="removeAddedTraining(${index})" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // 追加研修を削除する関数
+        function removeAddedTraining(index) {
+            // リストから削除（チェックボックスはそのまま）
+            addedTrainingList.splice(index, 1);
+            
+            // 表示を更新
+            updateAddedTrainingDisplay();
+            updateProgress();
+        }
 
 
 
@@ -575,6 +628,7 @@
             const fieldCounts = [0, 0, 0, 0, 0];
             let totalUnits = 0;
             
+            // チェックボックスからカウント
             document.querySelectorAll('#trainingMatrix input[type="checkbox"]').forEach(checkbox => {
                 if (checkbox.checked) {
                     const year = parseInt(checkbox.dataset.year);
@@ -584,6 +638,14 @@
                         fieldCounts[field]++;
                         totalUnits++;
                     }
+                }
+            });
+            
+            // 追加研修リストからカウント（重複を許可）
+            addedTrainingList.forEach(item => {
+                if (item.year >= validStartYear && item.year <= validEndYear) {
+                    fieldCounts[item.field]++;
+                    totalUnits++;
                 }
             });
             
@@ -705,14 +767,18 @@
                 return;
             }
             
-            // 該当するチェックボックスを探してチェック
+            // 追加研修リストに追加（重複を許可）
+            addedTrainingList.push({year: year, field: field});
+            
+            // 該当するチェックボックスがあればチェック
             const checkbox = document.querySelector(`input[data-year="${year}"][data-field="${field}"]`);
             if (checkbox) {
                 checkbox.checked = true;
-                updateProgress();
-            } else {
-                alert('指定された年度は表示範囲外です');
             }
+            
+            // 表示を更新
+            updateAddedTrainingDisplay();
+            updateProgress();
             
             // フィールドをクリア
             document.getElementById('otherYear').value = '';
