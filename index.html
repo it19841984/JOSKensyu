@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>矯正歯科専門医 研修履歴管理システム ver3.4</title>
+    <title>矯正歯科専門医 研修履歴管理システム ver4.1</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -27,7 +27,7 @@
     <div class="max-w-6xl mx-auto px-4">
         <div class="bg-white rounded-lg shadow-lg p-8">
             <h1 class="text-3xl font-bold text-center text-blue-800 mb-2">
-                <i class="fas fa-tooth mr-3"></i>矯正歯科専門医 研修履歴管理システム ver3.4
+                <i class="fas fa-tooth mr-3"></i>矯正歯科専門医 研修履歴管理システム ver4.1
             </h1>
             
             <p class="text-center text-sm text-gray-600 mb-8">
@@ -42,7 +42,7 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">申請タイプ</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">①申請タイプ</label>
                         <select id="applicationType" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">選択してください</option>
                             <option value="new">新規申請</option>
@@ -50,10 +50,10 @@
                         </select>
                     </div>
                     
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">申請年度</label>
+                    <div id="yearSelectContainer" style="display: none;">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">②申請年度</label>
                         <select id="applicationYear" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">まず申請タイプを選択してください</option>
+                            <option value="">選択してください</option>
                         </select>
                     </div>
                 </div>
@@ -160,7 +160,7 @@
             </div>
 
             <!-- 操作ボタン -->
-            <div class="flex justify-center space-x-4 no-print">
+            <div id="saveButtonSection" class="flex justify-center space-x-4 no-print" style="display: none;">
                 <button id="saveBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
                     <i class="fas fa-print mr-2"></i>保存（印刷）
                 </button>
@@ -225,6 +225,16 @@
             const type = this.value;
             currentApplicationType = type;
             const yearSelect = document.getElementById('applicationYear');
+            const yearSelectContainer = document.getElementById('yearSelectContainer');
+            
+            if (!type) {
+                yearSelectContainer.style.display = 'none';
+                hideAllSections();
+                return;
+            }
+            
+            // ②申請年度を表示
+            yearSelectContainer.style.display = 'block';
             
             yearSelect.innerHTML = '<option value="">選択してください</option>';
             
@@ -270,6 +280,8 @@
                 generateTrainingMatrix();
                 showProgressSection();
                 checkSpecialRequirement2029();
+                // 保存ボタンを表示
+                document.getElementById('saveButtonSection').style.display = 'flex';
             } else {
                 hideAllSections();
             }
@@ -280,6 +292,7 @@
             document.getElementById('trainingHistorySection').style.display = 'none';
             document.getElementById('progressSection').style.display = 'none';
             document.getElementById('specialRequirement2029').style.display = 'none';
+            document.getElementById('saveButtonSection').style.display = 'none';
         }
 
         function showRequirements() {
