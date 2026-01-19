@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>矯正歯科専門医 研修履歴管理システム ver4.1</title>
+    <title>矯正歯科専門医 共通研修履歴管理アプリ</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -27,7 +27,7 @@
     <div class="max-w-6xl mx-auto px-4">
         <div class="bg-white rounded-lg shadow-lg p-8">
             <h1 class="text-3xl font-bold text-center text-blue-800 mb-2">
-                <i class="fas fa-tooth mr-3"></i>矯正歯科専門医 研修履歴管理システム ver4.1
+                <i class="fas fa-tooth mr-3"></i>矯正歯科専門医 共通研修履歴管理アプリ
             </h1>
             
             <p class="text-center text-sm text-gray-600 mb-8">
@@ -36,6 +36,7 @@
 
             <!-- 基本設定セクション -->
             <div class="bg-blue-50 rounded-lg p-6 mb-8">
+
                 <h2 class="text-xl font-semibold text-blue-800 mb-4">
                     <i class="fas fa-cog mr-2"></i>基本設定
                 </h2>
@@ -70,6 +71,20 @@
                         <select id="applicationYear" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <option value="">選択してください</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- 前回データの読み込み（初期画面から常に表示：青枠内の下部） -->
+                <div class="mt-4 no-print">
+                    <div class="text-xs text-gray-600 mb-2">
+                        前回入力データを使用する場合はこちらから
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="file" id="importFile" accept="application/json" class="hidden" />
+                        <button id="importBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-upload mr-2"></i>読み込み
+                        </button>
+                        <span id="importStatus" class="text-xs text-gray-600"></span>
                     </div>
                 </div>
             </div>
@@ -130,40 +145,6 @@
                     </label>
                 </div>
 
-                <!-- その他研修追加 -->
-                <div class="mt-6 p-4 bg-gray-100 rounded-lg">
-                    <h3 class="text-lg font-medium text-gray-800 mb-3">その他研修追加</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">取得年度</label>
-                            <input type="number" id="otherYear" class="w-full p-2 border border-gray-300 rounded-md" min="2020" max="2040">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">研修分野</label>
-                            <select id="otherField" class="w-full p-2 border border-gray-300 rounded-md">
-                                <option value="">選択してください</option>
-                                <option value="0">①医療倫理</option>
-                                <option value="1">②患者・医療者関係の構築</option>
-                                <option value="2">③医療安全</option>
-                                <option value="3">④院内感染対策</option>
-                                <option value="4">⑤医療関連法規・医療経済</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end">
-                            <button id="addOtherTraining" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                追加
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 追加された研修の一覧 -->
-            <div id="addedTrainingListSection" class="bg-gray-50 rounded-lg p-6 mb-8" style="display: none;">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">
-                    <i class="fas fa-list mr-2"></i>追加された研修一覧
-                </h2>
-                <div id="addedTrainingList" class="space-y-2"></div>
             </div>
 
             <!-- 進捗状況表示 -->
@@ -175,10 +156,26 @@
             </div>
 
             <!-- 操作ボタン -->
-            <div id="saveButtonSection" class="flex justify-center space-x-4 no-print" style="display: none;">
-                <button id="saveBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
-                    <i class="fas fa-print mr-2"></i>保存（印刷）
+            <div id="saveButtonSection" class="flex flex-col items-center space-y-3 no-print" style="display: none;">
+                <div class="flex justify-center space-x-4">
+                <button id="printBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                    <i class="fas fa-print mr-2"></i>印刷
                 </button>
+                <button id="exportBtn" class="bg-gray-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-900 transition-colors">
+                    <i class="fas fa-file-export mr-2"></i>保存（データファイル）
+                </button>
+                </div>
+
+                <!-- 印刷/保存の下に説明を表示 -->
+                <div class="bg-white border border-gray-200 rounded-lg p-3 max-w-3xl w-full">
+                    <p class="text-sm text-gray-700 mt-2">
+                        <span class="font-semibold text-gray-800">データ保存：</span>「保存（データファイル）」を押すと、今の入力内容をファイルに保存できます。
+                    </p>
+                    <p class="text-sm text-gray-700 mt-2">
+                        次回入力時は、初期画面の読み込み（インポート）から以前このアプリで保存した「データ保存用ファイル」を選ぶと、入力内容が元に戻ります。
+                    </p>
+                    <p class="text-xs text-gray-500 mt-2">※保存されるファイル名の例：共通研修データ_2027_新規.json</p>
+                </div>
             </div>
         </div>
     </div>
@@ -187,51 +184,8 @@
         let trainingData = {};
         let currentApplicationType = '';
         let currentApplicationYear = '';
-        let addedTrainingList = [];
 
         // 追加研修を表示する関数
-        function updateAddedTrainingDisplay() {
-            const listContainer = document.getElementById('addedTrainingList');
-            const listSection = document.getElementById('addedTrainingListSection');
-            
-            if (addedTrainingList.length === 0) {
-                listSection.style.display = 'none';
-                return;
-            }
-            
-            listSection.style.display = 'block';
-            
-            const fieldNames = [
-                '①医療倫理',
-                '②患者・医療者関係の構築',
-                '③医療安全',
-                '④院内感染対策',
-                '⑤医療関連法規・医療経済'
-            ];
-            
-            listContainer.innerHTML = addedTrainingList.map((item, index) => `
-                <div class="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200">
-                    <div class="flex-1">
-                        <span class="font-medium text-gray-800">${item.year}年度</span>
-                        <span class="mx-2 text-gray-400">|</span>
-                        <span class="text-gray-700">${fieldNames[item.field]}</span>
-                    </div>
-                    <button onclick="removeAddedTraining(${index})" class="text-red-600 hover:text-red-800">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
-        
-        // 追加研修を削除する関数
-        function removeAddedTraining(index) {
-            // リストから削除（チェックボックスはそのまま）
-            addedTrainingList.splice(index, 1);
-            
-            // 表示を更新
-            updateAddedTrainingDisplay();
-            updateProgress();
-        }
 
 
 
@@ -428,7 +382,47 @@
                         cell.className = 'invalid-period';
                     }
                     
-                    checkbox.addEventListener('change', updateProgress);
+                    function handleTrainingCheckboxChange(e) {
+                        const cb = e.target;
+
+                        const getCheckboxes = () => Array.from(cell.querySelectorAll('input[type="checkbox"]'));
+                        const checkedCount = () => getCheckboxes().filter(x => x.checked).length;
+
+                        // 1) 右詰め整理: 末尾の未チェックを削除（最低1個は残す）
+                        const cleanupTrailingUnchecked = () => {
+                            let boxes = getCheckboxes();
+                            while (boxes.length > 1 && boxes[boxes.length - 1].checked === false) {
+                                cell.removeChild(boxes[boxes.length - 1]);
+                                boxes = getCheckboxes();
+                            }
+                        };
+
+                        if (cb.checked) {
+                            // チェックON: 同一年度×同一分野で複数単位を入力できるように、同じセルに新しいチェックボックスを追加
+                            const newCheckbox = document.createElement('input');
+                            newCheckbox.type = 'checkbox';
+                            newCheckbox.className = 'transform scale-125 ml-2';
+                            newCheckbox.dataset.year = cb.dataset.year;
+                            newCheckbox.dataset.field = cb.dataset.field;
+                            newCheckbox.addEventListener('change', handleTrainingCheckboxChange);
+                            cell.appendChild(newCheckbox);
+                        } else {
+                            // チェックOFF: いったん右詰め整理
+                            cleanupTrailingUnchecked();
+
+                            // 2) もし未チェックになったのが「途中」でも、常に末尾に未チェックが1つある状態に合わせる
+                            //    （= チェック済み個数 + 1 の数だけチェックボックスを残す）
+                            const keep = Math.max(1, checkedCount() + 1);
+                            let boxes = getCheckboxes();
+                            while (boxes.length > keep) {
+                                cell.removeChild(boxes[boxes.length - 1]);
+                                boxes = getCheckboxes();
+                            }
+                        }
+
+                        updateProgress();
+                    }
+                    checkbox.addEventListener('change', handleTrainingCheckboxChange);
                     cell.appendChild(checkbox);
                     row.appendChild(cell);
                 }
@@ -669,13 +663,6 @@
                 }
             });
             
-            // 追加研修リストからカウント（重複を許可）
-            addedTrainingList.forEach(item => {
-                if (item.year >= validStartYear && item.year <= validEndYear) {
-                    fieldCounts[item.field]++;
-                    totalUnits++;
-                }
-            });
             
             // 必要単位数を設定
             let requiredUnits;
@@ -791,36 +778,174 @@
             progressContent.innerHTML = progressHTML;
         }
 
-        // その他研修追加機能
-        document.getElementById('addOtherTraining').addEventListener('click', function() {
-            const year = parseInt(document.getElementById('otherYear').value);
-            const field = parseInt(document.getElementById('otherField').value);
-            
-            if (!year || field === '') {
-                alert('年度と分野を選択してください');
-                return;
+
+        // ===== JSONエクスポート / インポート =====
+        function buildExportData() {
+            // チェックボックス（複数単位対応）を年度×分野で集計
+            const checkboxCounts = {};
+            document.querySelectorAll('#trainingMatrix input[type="checkbox"]').forEach(cb => {
+                const year = cb.dataset.year;
+                const field = cb.dataset.field;
+                if (!year || field === undefined) return;
+                const key = `${year}-${field}`;
+                if (!checkboxCounts[key]) checkboxCounts[key] = { year: parseInt(year), field: parseInt(field), count: 0 };
+                if (cb.checked) checkboxCounts[key].count += 1;
+            });
+
+            return {
+                schemaVersion: '1.0',
+                exportedAt: new Date().toISOString(),
+                app: '矯正歯科専門医 共通研修履歴管理アプリ',
+                applicationType: currentApplicationType || '',
+                applicationTypeLabel: currentApplicationType === 'new' ? '新規' : (currentApplicationType === 'renewal' ? '更新' : ''),
+                applicationYear: currentApplicationYear || '',
+                institutionalTrainingChecked: !!(document.getElementById('institutionalTrainingCheck') && document.getElementById('institutionalTrainingCheck').checked),
+                // 手動チェックの集計結果（複数単位）
+                checkboxUnits: Object.values(checkboxCounts),
+            };
+        }
+
+        function downloadJson(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function clearTrainingMatrixChecks() {
+            // セル内の追加チェックボックスも含めて全てリセット（各セルは1個に戻す）
+            document.querySelectorAll('#trainingMatrix tbody td').forEach(td => {
+                const cbs = Array.from(td.querySelectorAll('input[type="checkbox"]'));
+                if (cbs.length === 0) return;
+                // 最初の1個だけ残して削除
+                cbs.forEach((cb, idx) => {
+                    if (idx === 0) {
+                        cb.checked = false;
+                    } else {
+                        td.removeChild(cb);
+                    }
+                });
+            });
+        }
+
+        function applyImportedData(data) {
+            // 申請タイプ & 申請年度
+            if (data.applicationType) {
+                document.getElementById('applicationType').value = data.applicationType;
+                // changeを発火して年度選択肢を生成
+                document.getElementById('applicationType').dispatchEvent(new Event('change'));
             }
-            
-            // 追加研修リストに追加（重複を許可）
-            addedTrainingList.push({year: year, field: field});
-            
-            // 該当するチェックボックスがあればチェック
-            const checkbox = document.querySelector(`input[data-year="${year}"][data-field="${field}"]`);
-            if (checkbox) {
-                checkbox.checked = true;
+            if (data.applicationYear) {
+                document.getElementById('applicationYear').value = data.applicationYear;
+                document.getElementById('applicationYear').dispatchEvent(new Event('change'));
             }
-            
-            // 表示を更新
-            updateAddedTrainingDisplay();
+
+            // マトリックスが描画された前提で反映
+            clearTrainingMatrixChecks();
+
+            // checkboxUnits（年度×分野のチェック数）を反映
+            if (Array.isArray(data.checkboxUnits)) {
+                data.checkboxUnits.forEach(item => {
+                    const year = item.year;
+                    const field = item.field;
+                    const count = Math.max(0, parseInt(item.count || 0));
+                    if (!year || field === undefined || count <= 0) return;
+
+                    // 対象セルを特定（同じdata-year/data-fieldを持つ最初のチェックボックスを探す）
+                    const base = document.querySelector(`#trainingMatrix input[type="checkbox"][data-year="${year}"][data-field="${field}"]`);
+                    if (!base) return;
+                    const td = base.closest('td');
+                    if (!td) return;
+
+                    // count個チェック済みにする（必要ならチェックボックスを増やす）
+                    for (let i = 0; i < count; i++) {
+                        let boxes = Array.from(td.querySelectorAll('input[type="checkbox"]'));
+                        if (i >= boxes.length) {
+                            // 末尾に追加
+                            const newCb = document.createElement('input');
+                            newCb.type = 'checkbox';
+                            newCb.className = 'transform scale-125 ml-2';
+                            newCb.dataset.year = String(year);
+                            newCb.dataset.field = String(field);
+                            // 既存のハンドラがセル内で定義されているため、ここではイベントに依存せず反映する
+                            td.appendChild(newCb);
+                            boxes = Array.from(td.querySelectorAll('input[type="checkbox"]'));
+                        }
+                        boxes[i].checked = true;
+                    }
+
+                    // 末尾に空きを1つ残す（右詰め入力の思想に合わせる）
+                    let boxes = Array.from(td.querySelectorAll('input[type="checkbox"]'));
+                    if (boxes.filter(x => x.checked).length === boxes.length) {
+                        const extra = document.createElement('input');
+                        extra.type = 'checkbox';
+                        extra.className = 'transform scale-125 ml-2';
+                        extra.dataset.year = String(year);
+                        extra.dataset.field = String(field);
+                        td.appendChild(extra);
+                    }
+                });
+            }
+
+
+            // 機構主催研修チェック
+            const inst = document.getElementById('institutionalTrainingCheck');
+            if (inst && typeof data.institutionalTrainingChecked === 'boolean') {
+                inst.checked = data.institutionalTrainingChecked;
+            }
+
             updateProgress();
-            
-            // フィールドをクリア
-            document.getElementById('otherYear').value = '';
-            document.getElementById('otherField').value = '';
+        }
+
+        // 印刷ボタン
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.print();
         });
 
-        document.getElementById('saveBtn').addEventListener('click', function() {
-            window.print();
+        // JSONエクスポートボタン
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const data = buildExportData();
+            const safeYear = data.applicationYear ? String(data.applicationYear) : '不明';
+            const typeLabel = data.applicationType === 'new' ? '新規' : (data.applicationType === 'renewal' ? '更新' : '不明');
+            downloadJson(data, `共通研修データ_${safeYear}_${typeLabel}.json`);
+        });
+
+        // インポートボタン
+        document.getElementById('importBtn').addEventListener('click', function() {
+            document.getElementById('importFile').click();
+        });
+
+        document.getElementById('importFile').addEventListener('change', function() {
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            const status = document.getElementById('importStatus');
+            status.textContent = '読み込み中...';
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                try {
+                    const data = JSON.parse(reader.result);
+                    applyImportedData(data);
+                    status.textContent = 'インポート完了';
+                } catch (e) {
+                    status.textContent = 'インポート失敗（JSON形式を確認してください）';
+                    alert('インポートに失敗しました。JSONファイルの形式をご確認ください。');
+                }
+            };
+            reader.onerror = function() {
+                const status = document.getElementById('importStatus');
+                status.textContent = '読み込みエラー';
+            };
+            reader.readAsText(file);
+
+            // 同じファイルを再選択できるようにリセット
+            this.value = '';
         });
 
         document.addEventListener('DOMContentLoaded', function() {
